@@ -1,0 +1,14 @@
+{
+  "name": "time-tracker",
+  "version": "0.0.1",
+  "description": "Use Timeular.com data to log time in Noko.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "chris@lullabot.com",
+  "license": "MIT",
+  "dependencies": {
+    "request": "^2.88.2"
+  }
+}
