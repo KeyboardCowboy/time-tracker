@@ -1,9 +1,5 @@
-function TimeularEntry() {
-    this.entry = {};
-
-    this.setEntry = (entry) => {
-        this.entry = entry;
-    };
+function TimeularEntry(entry) {
+    this.entry = entry;
 
     this.getDuration = () => {
         let timeStart = new Date(this.entry.duration.startedAt + 'z');
@@ -15,12 +11,17 @@ function TimeularEntry() {
         return new Date(this.entry.duration.stoppedAt + 'z');
     };
 
+    this.getDay = () => {
+      let date = this.getDate();
+      return date.getDate() + "-" + date.getMonthAbbrev() + "-" + date.getFullYear() + ", " + date.getDowFull();
+    };
+
     this.getNotes = () => {
         let notes = [];
 
         // Get tags.
         this.entry.note.tags.forEach(value => {
-            notes.push("#" + value.label);
+            notes.push("#" + value.label.replace(/\ /g, "-"));
         });
 
         // Get text.
@@ -30,7 +31,7 @@ function TimeularEntry() {
         if (tagless.length > 0) {
             notes.push(tagless);
         }
-        
+
         // Get mentions.
         // @todo: Does this have any benefit outside of timeular?  If not, ignore it.
 

@@ -2,7 +2,7 @@ require('./src/dateUtil');
 const program = require('commander');
 const config = require('./config');
 const timeularApi = require('./src/timeular');
-const TimeularEntry = require('./src/timeularEntry');
+const report = require('./src/report');
 
 // Grab any user provided variables.
 program
@@ -33,42 +33,9 @@ else if (options.report === "today") {
         let date2 = new Date();
         date2.setTodayEnd();
 
-        let entries = [];
+        // @todo: Generalize this for all reports.
         timeularApi.getTimeEntries(token, date1, date2).then(response => {
-            response.timeEntries.forEach(value => {
-                let entry = {
-                    duration: 0,
-                    date: 0,
-                    label: '',
-                    notes: '',
-                    project: ''
-                };
-
-                let te = new TimeularEntry();
-                te.setEntry(value);
-
-                entry.duration = Math.ceilX(te.getDuration(), config.roundUp);
-                entry.date = te.getDate();
-                entry.project = config.activityMap[value.activityId];
-                entry.notes = te.getNotes();
-                entries.push(entry);
-            });
-
-            // Summarize entry values.
-            let groupings = {};
-            entries.forEach(entry => {
-                groupings[entry.project] = groupings[entry.project] || {};
-                groupings[entry.project].duration = (groupings[entry.project].duration || 0) + entry.duration;
-                groupings[entry.project].tasks = groupings[entry.project].tasks || [];
-                groupings[entry.project].tasks = groupings[entry.project].tasks.concat(entry.notes);
-            });
-
-            // Generate printable report.
-            for (let i in groupings) {
-                // Ceilings each project to the next 15 minute increment.
-                console.log(i + ": " + Math.ceilX(groupings[i].duration, 15) / 60 + " hours");
-                console.log("    " + groupings[i].tasks.join(", ") + "\n");
-            }
+            report.printByDate(response.timeEntries, config);
         });
     }).catch(err => {
         console.error(err);
@@ -84,7 +51,7 @@ else if (options.report === "yesterday") {
         date2.setTodayEnd(-1);
 
         timeularApi.getTimeEntries(token, date1, date2).then(response => {
-            console.log(response);
+            report.printByDate(response.timeEntries, config);
         });
     }).catch(err => {
         console.error(err);
@@ -101,7 +68,7 @@ else if (options.report === "thisweek")
         date2.setWeekEnd();
 
         timeularApi.getTimeEntries(token, date1, date2).then(response => {
-            console.log(response);
+            report.printByDate(response.timeEntries, config);
         });
     }).catch(err => {
         console.error(err);
@@ -117,7 +84,7 @@ else if (options.report === "lastweek") {
         date2.setWeekEnd(-1);
 
         timeularApi.getTimeEntries(token, date1, date2).then(response => {
-            console.log(response);
+            report.printByDate(response.timeEntries, config);
         });
     }).catch(err => {
         console.error(err);
