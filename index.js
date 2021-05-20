@@ -2,6 +2,7 @@ require('./src/dateUtil');
 const program = require('commander');
 const config = require('./config');
 const timeularApi = require('./src/timeular');
+const timeularUtils = require('./src/timeularUtils');
 const report = require('./src/report');
 
 // Grab any user provided variables.
@@ -33,12 +34,11 @@ else if (options.report === "today") {
         let date2 = new Date();
         date2.setTodayEnd();
 
-        // @todo: Generalize this for all reports.
-        timeularApi.getTimeEntries(token, date1, date2).then(response => {
-            report.printByDate(response.timeEntries, config);
+        timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
+            report.printByDate(entries, config);
         });
     }).catch(err => {
-        console.error(err);
+        console.error(err.message);
     });
 }
 // Get a report of yesterday's completed time tasks.

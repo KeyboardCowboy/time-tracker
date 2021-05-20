@@ -10,7 +10,8 @@ module.exports = {
                 day: '',
                 label: '',
                 notes: '',
-                project: ''
+                project: '',
+                activityName: ''
             };
 
             let te = new TimeularEntry(value);
@@ -20,6 +21,7 @@ module.exports = {
             entry.day = te.getDay();
             entry.project = config.activityMap[value.activityId];
             entry.notes = te.getNotes();
+            entry.activityName = value.activityName;
             entries.push(entry);
         });
 
@@ -29,6 +31,9 @@ module.exports = {
         // Summarize entry values.
         let groupings = {};
         entries.forEach(entry => {
+            // If there are no notes on an entry, use the activity name.
+            if (entry.notes.length === 0) entry.notes.push(entry.activityName);
+
             groupings[entry.day] = groupings[entry.day] || {};
             groupings[entry.day][entry.project] = groupings[entry.day][entry.project] || {};
             groupings[entry.day][entry.project].duration = (groupings[entry.day][entry.project].duration || 0) + entry.duration;
@@ -41,9 +46,14 @@ module.exports = {
             console.log(day);
 
             for (let i in groupings[day]) {
+                // Remove duplicate notes and tags.
+                let uniqueTags = groupings[day][i].tasks.filter((val, index) => {
+                    return groupings[day][i].tasks.indexOf(val) === index;
+                });
+
                 // Ceilings each project to the next 15 minute increment.
                 console.log("    " + i + ": " + Math.ceilX(groupings[day][i].duration, 15) / 60 + " hours");
-                console.log("        " + groupings[day][i].tasks.join(", ") + "\n");
+                console.log("        " + uniqueTags.join(", ") + "\n");
             }
         }
     }
