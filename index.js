@@ -1,4 +1,4 @@
-require('./src/dateUtil');
+require('./src/utils');
 const program = require('commander');
 const config = require('./config');
 const timeularApi = require('./src/timeular');

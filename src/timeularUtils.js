@@ -1,5 +1,16 @@
 module.exports = {
     /**
+     * Escape notes and tags strings.
+     *
+     * @param str
+     * @returns {*}
+     */
+    escapeNotes: str => {
+        // Replace spaces with hyphens.
+        return str.replace(/\ /g, "-");
+    },
+
+    /**
      * Get a list of Timeular Time Entries with the Activity Name included, not just the ID.
      *
      * @param tApi
@@ -21,7 +32,7 @@ module.exports = {
 
             // Create a simple referencable object for activities to their IDs.
             response[0].activities.forEach(activity => {
-                activities[activity.id] = activity.name.replace(/\ /g, "-");
+                activities[activity.id] = activity.name;
             });
 
             // Add activity name to entries.

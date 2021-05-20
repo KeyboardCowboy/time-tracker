@@ -21,7 +21,7 @@ function TimeularEntry(entry) {
 
         // Get tags.
         this.entry.note.tags.forEach(value => {
-            notes.push("#" + value.label.replace(/\ /g, "-"));
+            notes.push("#" + value.label.replace(/ /g, "-"));
         });
 
         // Get text.

@@ -1,3 +1,4 @@
+require('./utils');
 const TimeularEntry = require('./timeularEntry');
 
 module.exports = {
@@ -48,7 +49,7 @@ module.exports = {
             for (let i in groupings[day]) {
                 // Remove duplicate notes and tags.
                 let uniqueTags = groupings[day][i].tasks.filter((val, index) => {
-                    return groupings[day][i].tasks.indexOf(val) === index;
+                    return (val.trim() !== "") && (groupings[day][i].tasks.indexOf(val) === index);
                 });
 
                 // Ceilings each project to the next 15 minute increment.
