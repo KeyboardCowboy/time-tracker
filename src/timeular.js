@@ -3,7 +3,7 @@
  * Node.js implementation for Timeular.
  */
 
-require('./utils');
+require('./prototype');
 const request = require('request');
 const apiUrl = 'https://api.timeular.com/api/v3/';
 

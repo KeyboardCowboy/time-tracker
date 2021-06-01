@@ -1,6 +1,7 @@
-require('./src/utils');
+require('./src/prototype');
 const program = require('commander');
 const config = require('./config');
+const utils = require('./src/utils');
 const timeularApi = require('./src/timeular');
 const timeularUtils = require('./src/timeularUtils');
 const report = require('./src/report');
@@ -15,81 +16,86 @@ const options = program.opts();
 // Default time entry rounding up to 10 minute increments.
 config.roundUp = config.roundUp || 10;
 
-// Get a listing of all Timeular activities for the account.
-if (options.report === "activities") {
-    timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
-        timeularApi.getActivities(token).then(response => {
-            console.log(response);
+// Define available reports.
+const reports = ['Today', 'Yesterday', 'This Week', 'Last Week', 'Activities'];
+
+utils.getReport(options, reports).then(reportName => {
+    // Get a listing of all Timeular activities for the account.
+    if (reportName === "Activities") {
+        timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+            timeularApi.getActivities(token).then(response => {
+                console.log(response);
+            });
+        }).catch(err => {
+            console.error(err);
         });
-    }).catch(err => {
-        console.error(err);
-    });
-}
-// Get a report of today's completed time tasks.
-else if (options.report === "today") {
-    timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
-        let date1 = new Date();
-        date1.setTodayStart();
+    }
+    // Get a report of today's completed time tasks.
+    else if (reportName === "Today") {
+        timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+            let date1 = new Date();
+            date1.setTodayStart();
 
-        let date2 = new Date();
-        date2.setTodayEnd();
+            let date2 = new Date();
+            date2.setTodayEnd();
 
-        timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
-            report.printByDate(entries, config);
+            timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
+                report.printByDate(entries, config);
+            });
+        }).catch(err => {
+            console.error(err.message);
         });
-    }).catch(err => {
-        console.error(err.message);
-    });
-}
-// Get a report of yesterday's completed time tasks.
-else if (options.report === "yesterday") {
-    timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
-        let date1 = new Date();
-        date1.setTodayStart(-1);
+    }
+    // Get a report of yesterday's completed time tasks.
+    else if (reportName === "Yesterday") {
+        timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+            let date1 = new Date();
+            date1.setTodayStart(-1);
 
-        let date2 = new Date();
-        date2.setTodayEnd(-1);
+            let date2 = new Date();
+            date2.setTodayEnd(-1);
 
-        timeularApi.getTimeEntries(token, date1, date2).then(response => {
-            report.printByDate(response.timeEntries, config);
+            timeularApi.getTimeEntries(token, date1, date2).then(response => {
+                report.printByDate(response.timeEntries, config);
+            });
+        }).catch(err => {
+            console.error(err.message);
         });
-    }).catch(err => {
-        console.error(err);
-    });
-}
-// Run a report for this week's data.
-else if (options.report === "thisweek")
-{
-    timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
-        let date1 = new Date();
-        date1.setWeekStart();
+    }
+    // Run a report for this week's data.
+    else if (reportName === "This Week") {
+        timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+            let date1 = new Date();
+            date1.setWeekStart();
 
-        let date2 = new Date();
-        date2.setWeekEnd();
+            let date2 = new Date();
+            date2.setWeekEnd();
 
-        timeularApi.getTimeEntries(token, date1, date2).then(response => {
-            report.printByDate(response.timeEntries, config);
+            timeularApi.getTimeEntries(token, date1, date2).then(response => {
+                report.printByDate(response.timeEntries, config);
+            });
+        }).catch(err => {
+            console.error(err.message);
         });
-    }).catch(err => {
-        console.error(err);
-    });
-}
-// Run a report for last week's data.
-else if (options.report === "lastweek") {
-    timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
-        let date1 = new Date();
-        date1.setWeekStart(-1);
+    }
+    // Run a report for last week's data.
+    else if (reportName === "Last Week") {
+        timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+            let date1 = new Date();
+            date1.setWeekStart(-1);
 
-        let date2 = new Date();
-        date2.setWeekEnd(-1);
+            let date2 = new Date();
+            date2.setWeekEnd(-1);
 
-        timeularApi.getTimeEntries(token, date1, date2).then(response => {
-            report.printByDate(response.timeEntries, config);
+            timeularApi.getTimeEntries(token, date1, date2).then(response => {
+                report.printByDate(response.timeEntries, config);
+            });
+        }).catch(err => {
+            console.error(err.message);
         });
-    }).catch(err => {
-        console.error(err);
-    });
-}
-else {
-    console.log('No report selected.');
-}
+    } else {
+        console.log('No report selected.');
+    }
+}).catch(err => {
+    console.error(err.message);
+});
