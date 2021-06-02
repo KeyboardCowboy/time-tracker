@@ -1,7 +1,7 @@
 /**
  * Date utilities.
  */
-Date.prototype.setTodayStart = function(offset) {
+Date.prototype.setDayStart = function(offset) {
     offset = offset || 0;
 
     let tmzh = this.getTimezoneOffset() / 60;
@@ -10,7 +10,7 @@ Date.prototype.setTodayStart = function(offset) {
     this.setHours(tmzh, 0, 0, 0);
 };
 
-Date.prototype.setTodayEnd = function(offset) {
+Date.prototype.setDayEnd = function(offset) {
     offset = offset || 0;
 
     let tmzh = this.getTimezoneOffset() / 60;
