@@ -2,7 +2,7 @@ require('./src/prototype');
 const program = require('commander');
 const config = require('./config');
 const utils = require('./src/utils');
-const timeularApi = require('./src/timeular');
+const timeularApi = require('./lib/timeular');
 const reports = require('./src/reports');
 
 // Grab any user provided variables.
@@ -26,9 +26,13 @@ utils.getReport(options, reports).then(reportName => {
         throw new Error(`No processor was defined for the ${reports[reportName].label} report.`);
     }
 
-    // Run the report.
-    reports[reportName].process(timeularApi, config).then(entries => {
-        console.log("@todo: Ask to report the entries to Timeular.");
+    timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+        // Run the report.
+        reports[reportName].process(config, token).then(entries => {
+            console.log("@todo: Ask to report the entries to Noko.");
+        });
+    }).catch(err => {
+        console.error('❌️ ' + err.message);
     });
 }).catch(err => {
     console.error('❌️ ' + err.message);

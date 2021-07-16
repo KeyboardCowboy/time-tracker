@@ -4,6 +4,7 @@
 require('./prototype');
 const TimeularEntry = require('./timeularEntry');
 const inquirer = require('inquirer');
+const colors = require('colors');
 
 module.exports = {
     /**
@@ -76,6 +77,7 @@ module.exports = {
         entries.timeSort();
 
         // Summarize entry values.
+        // @todo: Add total time.
         let groupings = {};
         entries.forEach(entry => {
             // If there are no notes on an entry, use the activity name.
@@ -90,7 +92,7 @@ module.exports = {
 
         // Generate printable report.
         for (let day in groupings) {
-            console.log(day);
+            console.log(day.red);
 
             // @todo: Improve sanitization
             // 1. Remove trailing commas and spaces
@@ -104,9 +106,11 @@ module.exports = {
                         (groupings[day][i].tasks.indexOf(val) === index);
                 });
 
-                // Ceilings each project to the next 15 minute increment.
-                console.log("    " + i + ": " + Math.ceilX(groupings[day][i].duration, config.roundProject) / 60 + " hours");
-                console.log("        " + uniqueTags.join(", ") + "\n");
+                // Ceilings each project to the next 15 minute increment (or whatever is defined in the config).
+                let project = "    " + i + ": " + Math.ceilX(groupings[day][i].duration, config.roundProject) / 60 + " hours";
+                let tags = "        " + uniqueTags.join(", ");
+                console.log(project.blue);
+                console.log(tags.green + "\n");
             }
         }
     }
