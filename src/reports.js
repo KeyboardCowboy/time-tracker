@@ -13,7 +13,7 @@ module.exports = {
         label: "Today's Hours",
         process: (timeularApi, config) => {
             return new Promise((resolve, reject) => {
-                timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+                timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
                     let date1 = new Date();
                     date1.setDayStart();
 
@@ -22,7 +22,7 @@ module.exports = {
 
                     timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
                         utils.printByDate(entries, config);
-                        resolve(entries);
+                        resolve(true);
                     });
                 });
             });
@@ -34,18 +34,21 @@ module.exports = {
     yesterday: {
         label: "Yesterday's Hours",
         process: (timeularApi, config) => {
-            timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
-                let date1 = new Date();
-                date1.setDayStart(-1);
+            return new Promise((resolve, reject) => {
+                timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
+                    let date1 = new Date();
+                    date1.setDayStart(-1);
 
-                let date2 = new Date();
-                date2.setDayEnd(-1);
+                    let date2 = new Date();
+                    date2.setDayEnd(-1);
 
-                timeularApi.getTimeEntries(token, date1, date2).then(response => {
-                    utils.printByDate(response.timeEntries, config);
+                    timeularApi.getTimeEntries(token, date1, date2).then(response => {
+                        utils.printByDate(response.timeEntries, config)
+                        resolve(true);
+                    });
+                }).catch(err => {
+                    console.error(err.message);
                 });
-            }).catch(err => {
-                console.error(err.message);
             });
         }
     },
@@ -55,7 +58,7 @@ module.exports = {
     thisWeek: {
         label: "This Week's Hours",
         process: (timeularApi, config) => {
-            timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+            timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
                 let date1 = new Date();
                 date1.setWeekStart();
 
@@ -76,7 +79,7 @@ module.exports = {
     lastWeek: {
         label: "Last Week's Hours",
         process: (timeularApi, config) => {
-            timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+            timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
                 let date1 = new Date();
                 date1.setWeekStart(-1);
 
@@ -102,7 +105,7 @@ module.exports = {
 
             // @todo: Validate reportDate as a valid date string.
             inquirer.prompt([dateQuestion]).then(answer => {
-                timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+                timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
                     let date1 = new Date(answer.reportDate);
                     date1.setMinutes(date1.getMinutes() + date1.getTimezoneOffset());
                     date1.setDayStart();
@@ -126,7 +129,7 @@ module.exports = {
     activities: {
         label: "Timeular Activities",
         process: (timeularApi, config) => {
-            timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+            timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
                 timeularApi.getActivities(token).then(response => {
                     console.log(response);
                 });

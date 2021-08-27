@@ -4,7 +4,7 @@
   "description": "Use Timeular.com data to log time in Noko.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "chris@lullabot.com",
   "license": "GNU",
@@ -12,5 +12,8 @@
     "commander": "^7.2.0",
     "inquirer": "^8.1.0",
     "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "mocha": "^9.0.2"
   }
 }
