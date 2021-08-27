@@ -4,7 +4,6 @@
 const inquirer = require('inquirer');
 const utils = require('./utils');
 const timeularUtils = require('./timeularUtils');
-const timeularApi = require('../lib/timeular');
 
 module.exports = {
     /**
@@ -12,17 +11,19 @@ module.exports = {
      */
     today: {
         label: "Today's Hours",
-        process: (config, token) => {
+        process: (timeularApi, config) => {
             return new Promise((resolve, reject) => {
-                let date1 = new Date();
-                date1.setDayStart();
+                timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
+                    let date1 = new Date();
+                    date1.setDayStart();
 
-                let date2 = new Date();
-                date2.setDayEnd();
+                    let date2 = new Date();
+                    date2.setDayEnd();
 
-                timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
-                    utils.printByDate(entries, config);
-                    resolve(entries);
+                    timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
+                        utils.printByDate(entries, config);
+                        resolve(true);
+                    });
                 });
             });
         }
@@ -32,17 +33,21 @@ module.exports = {
      */
     yesterday: {
         label: "Yesterday's Hours",
-        process: (config, token) => {
+        process: (timeularApi, config) => {
             return new Promise((resolve, reject) => {
-                let date1 = new Date();
-                date1.setDayStart(-1);
+                timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
+                    let date1 = new Date();
+                    date1.setDayStart(-1);
 
-                let date2 = new Date();
-                date2.setDayEnd(-1);
+                    let date2 = new Date();
+                    date2.setDayEnd(-1);
 
-                timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
-                    utils.printByDate(entries, config);
-                    resolve(entries);
+                    timeularApi.getTimeEntries(token, date1, date2).then(response => {
+                        utils.printByDate(response.timeEntries, config)
+                        resolve(true);
+                    });
+                }).catch(err => {
+                    console.error(err.message);
                 });
             });
         }
@@ -52,18 +57,19 @@ module.exports = {
      */
     thisWeek: {
         label: "This Week's Hours",
-        process: (config, token) => {
-            return new Promise((resolve, reject) => {
+        process: (timeularApi, config) => {
+            timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
                 let date1 = new Date();
                 date1.setWeekStart();
 
                 let date2 = new Date();
                 date2.setWeekEnd();
 
-                timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
-                    utils.printByDate(entries, config);
-                    resolve(entries);
+                timeularApi.getTimeEntries(token, date1, date2).then(response => {
+                    utils.printByDate(response.timeEntries, config);
                 });
+            }).catch(err => {
+                console.error(err.message);
             });
         }
     },
@@ -72,18 +78,19 @@ module.exports = {
      */
     lastWeek: {
         label: "Last Week's Hours",
-        process: (config, token) => {
-            return new Promise((resolve, reject) => {
+        process: (timeularApi, config) => {
+            timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
                 let date1 = new Date();
                 date1.setWeekStart(-1);
 
                 let date2 = new Date();
                 date2.setWeekEnd(-1);
 
-                timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
-                    utils.printByDate(entries, config);
-                    resolve(entries);
+                timeularApi.getTimeEntries(token, date1, date2).then(response => {
+                    utils.printByDate(response.timeEntries, config);
                 });
+            }).catch(err => {
+                console.error(err.message);
             });
         }
     },
@@ -92,13 +99,13 @@ module.exports = {
      */
     customDate: {
         label: "Specific Day",
-        process: (config, token) => {
+        process: (timeularApi, config) => {
             // Get the custom date.
             const dateQuestion = {name: 'reportDate', message: "Get Report for Date [yyyy-mm-dd]:"};
 
             // @todo: Validate reportDate as a valid date string.
             inquirer.prompt([dateQuestion]).then(answer => {
-                timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+                timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
                     let date1 = new Date(answer.reportDate);
                     date1.setMinutes(date1.getMinutes() + date1.getTimezoneOffset());
                     date1.setDayStart();
@@ -107,7 +114,7 @@ module.exports = {
                     date2.setMinutes(date2.getMinutes() + date2.getTimezoneOffset());
                     date2.setDayEnd();
 
-                    timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(response => {
+                    timeularApi.getTimeEntries(token, date1, date2).then(response => {
                         utils.printByDate(response.timeEntries, config);
                     });
                 }).catch(err => {
@@ -121,8 +128,8 @@ module.exports = {
      */
     activities: {
         label: "Timeular Activities",
-        process: (config, token) => {
-            timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+        process: (timeularApi, config) => {
+            timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
                 timeularApi.getActivities(token).then(response => {
                     console.log(response);
                 });

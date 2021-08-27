@@ -34,8 +34,7 @@ module.exports = {
                 inquirer.prompt([reportQuestion]).then(answer => {
                     resolve(answer.reportName);
                 });
-            }
-            else {
+            } else {
                 resolve(options.report);
             }
         });
@@ -67,51 +66,81 @@ module.exports = {
             entry.duration = Math.ceilX(te.getDuration(), config.roundEntry);
             entry.date = te.getDate();
             entry.day = te.getDay();
-            entry.project = config.activityMap[value.activityId];
             entry.notes = te.getNotes();
             entry.activityName = value.activityName;
+
+            // Used for grouping by Noko project.  Change this to the Noko project name once we start pulling that data.
+            entry.project = config.activityMap[value.activityId].label;
+            entry.billable = config.activityMap[value.activityId].billable;
+
             entries.push(entry);
         });
 
         // Sort entries by date/time.
         entries.timeSort();
 
-        // Summarize entry values.
+        // Group by project.
         // @todo: Add total time.
-        let groupings = {};
+        let groupByProject = {},
+            groupByBillable = {false: 0, true: 0};
         entries.forEach(entry => {
             // If there are no notes on an entry, use the activity name.
             if (entry.notes.length === 0) entry.notes.push(entry.activityName);
 
-            groupings[entry.day] = groupings[entry.day] || {};
-            groupings[entry.day][entry.project] = groupings[entry.day][entry.project] || {};
-            groupings[entry.day][entry.project].duration = (groupings[entry.day][entry.project].duration || 0) + entry.duration;
-            groupings[entry.day][entry.project].tasks = groupings[entry.day][entry.project].tasks || [];
-            groupings[entry.day][entry.project].tasks = groupings[entry.day][entry.project].tasks.concat(entry.notes);
+            groupByProject[entry.day] = groupByProject[entry.day] || {};
+            groupByProject[entry.day].projects = groupByProject[entry.day].projects || {};
+            groupByProject[entry.day].projects[entry.project] = groupByProject[entry.day].projects[entry.project] || {};
+            groupByProject[entry.day].projects[entry.project].duration = (groupByProject[entry.day].projects[entry.project].duration || 0) + entry.duration;
+            groupByProject[entry.day].projects[entry.project].tasks = groupByProject[entry.day].projects[entry.project].tasks || [];
+            groupByProject[entry.day].projects[entry.project].tasks = groupByProject[entry.day].projects[entry.project].tasks.concat(entry.notes);
+
+            // Log billable time by day.
+            groupByProject[entry.day].billable = groupByProject[entry.day].billable || {};
+            groupByProject[entry.day].billable[entry.billable] = (groupByProject[entry.day].billable[entry.billable] || 0) + entry.duration;
+
+            // groupByBillable[entry.billable] = groupByBillable[entry.billable] || {};
+            // Log billable time over the length of the report.
+            groupByBillable[entry.billable] = groupByBillable[entry.billable] + entry.duration;
         });
 
-        // Generate printable report.
-        for (let day in groupings) {
-            console.log(day.red);
+        // Generate the project report by day.
+        for (let day in groupByProject) {
+            console.log(`\n${day}`);
 
             // @todo: Improve sanitization
             // 1. Remove trailing commas and spaces
             // 2. Remove empty entries
             // 3. Remove duplicate entries
-            for (let i in groupings[day]) {
+            for (let i in groupByProject[day].projects) {
                 // Remove duplicate notes and tags.
-                let uniqueTags = groupings[day][i].tasks.filter((val, index) => {
+                let uniqueTags = groupByProject[day].projects[i].tasks.filter((val, index) => {
                     return (typeof val !== "undefined") &&
                         (val.trim() !== "") &&
-                        (groupings[day][i].tasks.indexOf(val) === index);
+                        (groupByProject[day].projects[i].tasks.indexOf(val) === index);
                 });
 
-                // Ceilings each project to the next 15 minute increment (or whatever is defined in the config).
-                let project = "    " + i + ": " + Math.ceilX(groupings[day][i].duration, config.roundProject) / 60 + " hours";
-                let tags = "        " + uniqueTags.join(", ");
-                console.log(project.blue);
-                console.log(tags.green + "\n");
+                // Ceilings each project to the next 15 minute increment.
+                console.log(`    ` + Math.ceilX(groupByProject[day].projects[i].duration, config.roundProject) / 60 + ` hours \t ${i} | ${uniqueTags.join(", ")}`);
+                // console.log("        " + uniqueTags.join(", ") + "\n");
             }
+
+            const billableByDay = Math.ceilX(groupByProject[day].billable.true, config.roundProject) / 60;
+            const nonBillableByDay = Math.ceilX(groupByProject[day].billable.false, config.roundProject) / 60;
+            const totalByDay = billableByDay + nonBillableByDay;
+
+            console.log(`\n    Billable:\t\t${billableByDay} hours`);
+            console.log(`    Not Billable:\t${nonBillableByDay} hours`);
+            console.log(`    Total:\t\t${totalByDay} hours`);
         }
+
+        // Generate the billable report.
+        const billableTotal = Math.ceilX(groupByBillable[true], config.roundProject) / 60;
+        const nonBillableTotal = Math.ceilX(groupByBillable[false], config.roundProject) / 60;
+        const total = billableTotal + nonBillableTotal;
+
+        console.log("\nReport Summary:");
+        console.log(`    Billable:\t\t${billableTotal} hours`);
+        console.log(`    Not Billable:\t${nonBillableTotal} hours`);
+        console.log(`    Total:\t\t${total} hours`);
     }
 }

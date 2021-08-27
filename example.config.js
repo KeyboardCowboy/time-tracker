@@ -2,7 +2,11 @@ module.exports = {
     "apiKey": "apiKey",
     "apiSecret": "apiSecret",
     "activityMap": {
-        'timularActivityId1': 'nokoProjectId1',
+        'timularActivityId1': {
+            label: 'Custom Reporting Label',
+            nokoProject: 'nokoProjectId1',
+            billable: true
+        },
         // ...
     }
 };
