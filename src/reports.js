@@ -11,19 +11,17 @@ module.exports = {
      */
     today: {
         label: "Today's Hours",
-        process: (timeularApi, config) => {
+        process: (config, token) => {
             return new Promise((resolve, reject) => {
-                timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
-                    let date1 = new Date();
-                    date1.setDayStart();
+                let date1 = new Date();
+                date1.setDayStart();
 
-                    let date2 = new Date();
-                    date2.setDayEnd();
+                let date2 = new Date();
+                date2.setDayEnd();
 
-                    timeularUtils.getTimeEntries(timeularApi, token, date1, date2).then(entries => {
-                        utils.printByDate(entries, config);
-                        resolve(true);
-                    });
+                timeularUtils.getTimeEntries(token, date1, date2).then(entries => {
+                    utils.printByDate(entries, config);
+                    resolve(true);
                 });
             });
         }
@@ -33,22 +31,20 @@ module.exports = {
      */
     yesterday: {
         label: "Yesterday's Hours",
-        process: (timeularApi, config) => {
+        process: (config, token) => {
             return new Promise((resolve, reject) => {
-                timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
-                    let date1 = new Date();
-                    date1.setDayStart(-1);
+                let date1 = new Date();
+                date1.setDayStart(-1);
 
-                    let date2 = new Date();
-                    date2.setDayEnd(-1);
+                let date2 = new Date();
+                date2.setDayEnd(-1);
 
-                    timeularApi.getTimeEntries(token, date1, date2).then(response => {
-                        utils.printByDate(response.timeEntries, config)
-                        resolve(true);
-                    });
-                }).catch(err => {
-                    console.error(err.message);
+                timeularApi.getTimeEntries(token, date1, date2).then(response => {
+                    utils.printByDate(response.timeEntries, config)
+                    resolve(true);
                 });
+            }).catch(err => {
+                console.error(err.message);
             });
         }
     },
@@ -57,16 +53,17 @@ module.exports = {
      */
     thisWeek: {
         label: "This Week's Hours",
-        process: (timeularApi, config) => {
-            timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
+        process: (config, token) => {
+            return new Promise((resolve, reject) => {
                 let date1 = new Date();
                 date1.setWeekStart();
 
                 let date2 = new Date();
                 date2.setWeekEnd();
 
-                timeularApi.getTimeEntries(token, date1, date2).then(response => {
-                    utils.printByDate(response.timeEntries, config);
+                timeularUtils.getTimeEntries(token, date1, date2).then(entries => {
+                    utils.printByDate(entries, config);
+                    resolve(true);
                 });
             }).catch(err => {
                 console.error(err.message);
@@ -79,15 +76,16 @@ module.exports = {
     lastWeek: {
         label: "Last Week's Hours",
         process: (timeularApi, config) => {
-            timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
+            return new Promise((resolve, reject) => {
                 let date1 = new Date();
                 date1.setWeekStart(-1);
 
                 let date2 = new Date();
                 date2.setWeekEnd(-1);
 
-                timeularApi.getTimeEntries(token, date1, date2).then(response => {
+                timeularUtils.getTimeEntries(token, date1, date2).then(response => {
                     utils.printByDate(response.timeEntries, config);
+                    resolve(true);
                 });
             }).catch(err => {
                 console.error(err.message);

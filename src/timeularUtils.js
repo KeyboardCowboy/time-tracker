@@ -1,18 +1,19 @@
+const Timeular = require('../lib/timeular');
+
 module.exports = {
     /**
      * Get a list of Timeular Time Entries with the Activity Name included, not just the ID.
      *
-     * @param tApi
      * @param token
      * @param date1
      * @param date2
      * @returns {Promise<unknown>}
      */
-    getTimeEntries: (tApi, token, date1, date2) => {
+    getTimeEntries: (token, date1, date2) => {
         return new Promise((resolve, reject) => {
             const promises = [];
-            promises.push(tApi.getActivities(token));
-            promises.push(tApi.getTimeEntries(token, date1, date2));
+            promises.push(Timeular.getActivities(token));
+            promises.push(Timeular.getTimeEntries(token, date1, date2));
 
             resolve(Promise.all(promises));
         }).then(response => {

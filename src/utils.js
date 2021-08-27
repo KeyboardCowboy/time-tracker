@@ -105,13 +105,15 @@ module.exports = {
 
         // Generate the project report by day.
         for (let day in groupByProject) {
-            console.log(`\n${day}`);
+            console.log(`\n${day}`.bold.red);
 
             // @todo: Improve sanitization
             // 1. Remove trailing commas and spaces
             // 2. Remove empty entries
             // 3. Remove duplicate entries
             for (let i in groupByProject[day].projects) {
+                let project = i.blue;
+
                 // Remove duplicate notes and tags.
                 let uniqueTags = groupByProject[day].projects[i].tasks.filter((val, index) => {
                     return (typeof val !== "undefined") &&
@@ -120,8 +122,7 @@ module.exports = {
                 });
 
                 // Ceilings each project to the next 15 minute increment.
-                console.log(`    ` + Math.ceilX(groupByProject[day].projects[i].duration, config.roundProject) / 60 + ` hours \t ${i} | ${uniqueTags.join(", ")}`);
-                // console.log("        " + uniqueTags.join(", ") + "\n");
+                console.log(`    ` + Math.ceilX(groupByProject[day].projects[i].duration, config.roundProject) / 60 + ` hours \t ${project} | ${uniqueTags.join(", ")}`);
             }
 
             const billableByDay = Math.ceilX(groupByProject[day].billable.true, config.roundProject) / 60;
@@ -130,7 +131,7 @@ module.exports = {
 
             console.log(`\n    Billable:\t\t${billableByDay} hours`);
             console.log(`    Not Billable:\t${nonBillableByDay} hours`);
-            console.log(`    Total:\t\t${totalByDay} hours`);
+            console.log(`    Total:\t\t${totalByDay} hours`.bold);
         }
 
         // Generate the billable report.
@@ -138,9 +139,9 @@ module.exports = {
         const nonBillableTotal = Math.ceilX(groupByBillable[false], config.roundProject) / 60;
         const total = billableTotal + nonBillableTotal;
 
-        console.log("\nReport Summary:");
+        console.log("\nReport Summary:".bold.yellow);
         console.log(`    Billable:\t\t${billableTotal} hours`);
         console.log(`    Not Billable:\t${nonBillableTotal} hours`);
-        console.log(`    Total:\t\t${total} hours`);
+        console.log(`    Total:\t\t${total} hours`.bold);
     }
 }

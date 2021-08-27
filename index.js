@@ -26,10 +26,10 @@ utils.getReport(options, reports).then(reportName => {
         throw new Error(`No processor was defined for the ${reports[reportName].label} report.`);
     }
 
-    timeularApi.connect(config.apiKey, config.apiSecret).then(token => {
+    timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
         // Run the report.
         reports[reportName].process(config, token).then(entries => {
-            console.log("@todo: Ask to report the entries to Noko.");
+            console.log("\n@todo: Ask to report the entries to Noko.");
         });
     }).catch(err => {
         console.error('❌️ ' + err.message);
