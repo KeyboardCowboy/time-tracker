@@ -37,19 +37,9 @@ Date.prototype.setWeekEnd = function(offset) {
     this.setHours(23, 59, 59, 999);
 };
 
-Date.prototype.getTimeularTime = function() {
-    // Adjust timezone offset for GMT.
-    this.setMinutes(this.getMinutes() - this.getTimezoneOffset());
-    return this.toISOString().slice(0, -1);
-}
-
 Date.prototype.getMonthAbbrev = function() {
     let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dev"];
     return months[this.getMonth()];
-}
-
-Date.prototype.getMonthFull = function() {
-
 }
 
 Date.prototype.getDowFull = function () {

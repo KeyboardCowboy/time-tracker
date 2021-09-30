@@ -21,7 +21,7 @@ module.exports = {
 
                 timeularUtils.getTimeEntries(token, date1, date2).then(entries => {
                     utils.printByDate(entries, config);
-                    resolve(true);
+                    resolve(entries);
                 });
             });
         }
@@ -39,8 +39,8 @@ module.exports = {
                 let date2 = new Date();
                 date2.setDayEnd(-1);
 
-                timeularApi.getTimeEntries(token, date1, date2).then(response => {
-                    utils.printByDate(response.timeEntries, config)
+                timeularUtils.getTimeEntries(token, date1, date2).then(entries => {
+                    utils.printByDate(entries, config)
                     resolve(true);
                 });
             }).catch(err => {
@@ -75,7 +75,7 @@ module.exports = {
      */
     lastWeek: {
         label: "Last Week's Hours",
-        process: (timeularApi, config) => {
+        process: (config, token) => {
             return new Promise((resolve, reject) => {
                 let date1 = new Date();
                 date1.setWeekStart(-1);
@@ -83,8 +83,8 @@ module.exports = {
                 let date2 = new Date();
                 date2.setWeekEnd(-1);
 
-                timeularUtils.getTimeEntries(token, date1, date2).then(response => {
-                    utils.printByDate(response.timeEntries, config);
+                timeularUtils.getTimeEntries(token, date1, date2).then(entries => {
+                    utils.printByDate(entries, config);
                     resolve(true);
                 });
             }).catch(err => {

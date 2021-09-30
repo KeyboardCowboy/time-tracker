@@ -1,4 +1,4 @@
-const Timeular = require('../lib/timeular');
+const Timeular = require('../lib/TimeularApi');
 
 module.exports = {
     /**

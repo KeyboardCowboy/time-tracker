@@ -2,7 +2,7 @@ require('./src/prototype');
 const program = require('commander');
 const config = require('./config');
 const utils = require('./src/utils');
-const timeularApi = require('./lib/timeular');
+const timeularApi = require('./lib/TimeularApi');
 const reports = require('./src/reports');
 
 // Grab any user provided variables.
@@ -29,6 +29,8 @@ utils.getReport(options, reports).then(reportName => {
     timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
         // Run the report.
         reports[reportName].process(config, token).then(entries => {
+
+
             console.log("\n@todo: Ask to report the entries to Noko.");
         });
     }).catch(err => {

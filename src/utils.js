@@ -2,7 +2,7 @@
  * Collection of general utility methods.
  */
 require('./prototype');
-const TimeularEntry = require('./timeularEntry');
+const TimeularEntry = require('../lib/TimeularEntry');
 const inquirer = require('inquirer');
 const colors = require('colors');
 
@@ -143,5 +143,10 @@ module.exports = {
         console.log(`    Billable:\t\t${billableTotal} hours`);
         console.log(`    Not Billable:\t${nonBillableTotal} hours`);
         console.log(`    Total:\t\t${total} hours`.bold);
+    },
+
+    logEntriesToNoko: (entries) => {
+
     }
+
 }
