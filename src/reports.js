@@ -3,7 +3,6 @@
  */
 const inquirer = require('inquirer');
 const utils = require('./utils');
-const timeularUtils = require('./timeularUtils');
 
 module.exports = {
     /**
@@ -11,6 +10,19 @@ module.exports = {
      */
     today: {
         label: "Today's Hours",
+        load: async (T2N) => {
+            const date1 = new Date();
+            date1.setDayStart();
+
+            const date2 = new Date();
+            date2.setDayEnd();
+
+            return await T2N.timeularApi.getTimeEntries(date1, date2);
+        },
+        report: (T2N, TEs) => {
+            // @todo: Finish refactoring this to handle TimeularEntry objects.
+            T2N.printByDate(TEs, config);
+        },
         process: (config, token) => {
             return new Promise((resolve, reject) => {
                 let date1 = new Date();
@@ -126,13 +138,12 @@ module.exports = {
      */
     activities: {
         label: "Timeular Activities",
-        process: (timeularApi, config) => {
-            timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
-                timeularApi.getActivities(token).then(response => {
-                    console.log(response);
-                });
-            }).catch(err => {
-                console.error(err);
+        load: async (T2N) => {
+            return await T2N.getTimeularActivities();
+        },
+        printReport: (T2N, activities) => {
+            activities.forEach(TA => {
+                console.log(TA.getId() + ': ' + TA.getName());
             });
         }
     },

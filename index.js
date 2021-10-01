@@ -1,8 +1,10 @@
 require('./src/prototype');
 const program = require('commander');
+const inquirer = require('inquirer');
+const TimeularApi = require('./lib/TimeularApi');
+const NokoApi = require('./lib/NokoApi');
 const config = require('./config');
 const utils = require('./src/utils');
-const timeularApi = require('./lib/TimeularApi');
 const reports = require('./src/reports');
 
 // Grab any user provided variables.
@@ -16,21 +18,27 @@ const options = program.opts();
 config.roundEntry = options.roundUp || 5;
 
 utils.getReport(options, reports).then(reportName => {
+    const Timeular = new TimeularApi();
+    const Noko = new NokoApi(config.nokoToken);
+
     // Make sure we have a valid report name.
     if (!reports.hasOwnProperty(reportName)) {
-        throw new Error('Invalid report selected.');
+        throw new Error(`${reportName} is not a valid report name.`);
     }
 
     // Make sure the report has defined a processor.
-    if (!reports[reportName].hasOwnProperty('process')) {
+    if (!reports[reportName].hasOwnProperty('getEntries')) {
         throw new Error(`No processor was defined for the ${reports[reportName].label} report.`);
     }
 
-    timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
-        // Run the report.
-        reports[reportName].process(config, token).then(entries => {
-
-
+    Timeular.connect(config.timeularKey, config.timeularSecret).then(token => {
+        // Grab the Timeular entries for the report.
+        reports[reportName].getEntries(Timeular, Noko).then(entries => {
+            // Print the time report from Timeular with proper formatting.
+            utils.printByDate(entries, config);
+            return entries;
+        }).then(entries => {
+            // Ask about submitting the Timeular time to Noko.
             console.log("\n@todo: Ask to report the entries to Noko.");
         });
     }).catch(err => {
