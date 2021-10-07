@@ -4,7 +4,7 @@
 require('./prototype');
 const NokoApi = require('../lib/NokoApi');
 const TimeularApi = require('../lib/TimeularApi');
-const TimeularEntry = require('../lib/TimeularEntry');
+const TimeularEntry = require('../lib/src/TimeularEntry');
 const inquirer = require('inquirer');
 const colors = require('colors');
 

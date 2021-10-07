@@ -11,7 +11,7 @@ const Timeular = new TimeularApi();
 describe('Connect to Developer API', () => {
     it('Should retrieve an API token', () => {
         Timeular.connect(config.timeularKey, config.timeularSecret).then(token => {
-            assert(Timeular.apiToken.length > 0, "Token length is 0.");
+            assert(Timeular.#apiToken.length > 0, "Token length is 0.");
         });
     });
 

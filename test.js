@@ -2,7 +2,6 @@ require('./src/prototype');
 const program = require('commander');
 const Timeular2Noko = require('./src/Timeular2Noko');
 const config = require('./config');
-const utils = require('./src/utils');
 const reports = require('./src/reports');
 
 // Grab any user provided variables.
@@ -38,7 +37,7 @@ T2N.init().then(response => {
         // Print the report to the console.
         .then(report => {
             report.load(T2N).then(entries => {
-                report.printReport(T2N, entries);
+                report.print(T2N, entries);
                 return entries;
             }, err => {
                 throw err;

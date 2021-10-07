@@ -19,23 +19,18 @@ module.exports = {
 
             return await T2N.timeularApi.getTimeEntries(date1, date2);
         },
-        report: (T2N, TEs) => {
-            // @todo: Finish refactoring this to handle TimeularEntry objects.
-            T2N.printByDate(TEs, config);
-        },
-        process: (config, token) => {
-            return new Promise((resolve, reject) => {
-                let date1 = new Date();
-                date1.setDayStart();
+        print: async (T2N, timeularEntries) => {
+            if (timeularEntries.length === 0) {
+                T2N.printEmptyReport();
+            } else {
+                const entryDate = timeularEntries[0].getDate();
+                const projGroup = await T2N.groupTimeularEntriesByProject(timeularEntries);
 
-                let date2 = new Date();
-                date2.setDayEnd();
+                // @todo: Sort by project id to keep reports consistently formatted.
 
-                timeularUtils.getTimeEntries(token, date1, date2).then(entries => {
-                    utils.printByDate(entries, config);
-                    resolve(entries);
-                });
-            });
+                // Print the day's summary.
+                T2N.printDaySummary(entryDate, projGroup);
+            }
         }
     },
     /**
@@ -43,22 +38,28 @@ module.exports = {
      */
     yesterday: {
         label: "Yesterday's Hours",
-        process: (config, token) => {
-            return new Promise((resolve, reject) => {
-                let date1 = new Date();
-                date1.setDayStart(-1);
+        load: async (T2N) => {
+            const date1 = new Date();
+            date1.setDayStart(-1);
 
-                let date2 = new Date();
-                date2.setDayEnd(-1);
+            const date2 = new Date();
+            date2.setDayEnd(-1);
 
-                timeularUtils.getTimeEntries(token, date1, date2).then(entries => {
-                    utils.printByDate(entries, config)
-                    resolve(true);
-                });
-            }).catch(err => {
-                console.error(err.message);
-            });
-        }
+            return await T2N.timeularApi.getTimeEntries(date1, date2);
+        },
+        print: async (T2N, timeularEntries) => {
+            if (timeularEntries.length === 0) {
+                T2N.printEmptyReport();
+            } else {
+                const entryDate = timeularEntries[0].getDate();
+                const projGroup = await T2N.groupTimeularEntriesByProject(timeularEntries);
+
+                // @todo: Sort by project id to keep reports consistently formatted.
+
+                // Print the day's summary.
+                T2N.printDaySummary(entryDate, projGroup);
+            }
+        },
     },
     /**
      * Report all of this week's hours by day.
@@ -139,11 +140,11 @@ module.exports = {
     activities: {
         label: "Timeular Activities",
         load: async (T2N) => {
-            return await T2N.getTimeularActivities();
+            return await T2N.timeularApi.getActivities();
         },
-        printReport: (T2N, activities) => {
-            activities.forEach(TA => {
-                console.log(TA.getId() + ': ' + TA.getName());
+        print: (T2N, activities) => {
+            activities.forEach(activity => {
+                console.log(activity.getId() + ': ' + activity.getName());
             });
         }
     },

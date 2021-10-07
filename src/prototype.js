@@ -38,13 +38,17 @@ Date.prototype.setWeekEnd = function(offset) {
 };
 
 Date.prototype.getMonthAbbrev = function() {
-    let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dev"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dev"];
     return months[this.getMonth()];
 }
 
 Date.prototype.getDowFull = function () {
-    let dows = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const dows = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     return dows[this.getDay() - 1];
+}
+
+Date.prototype.getDayFull = function () {
+    return this.getDate() + "-" + this.getMonthAbbrev() + "-" + this.getFullYear() + ", " + this.getDowFull();
 }
 
 Math.ceilX = function(x, y) {
@@ -53,4 +57,8 @@ Math.ceilX = function(x, y) {
 
 Array.prototype.timeSort = function() {
     this.sort((a, b) => a.date.getTime() - b.date.getTime());
+}
+
+Array.prototype.TimeularEntryTimeSort = function() {
+    this.sort((a, b) => a.getDate().getTime() - b.getDate().getTime());
 }
