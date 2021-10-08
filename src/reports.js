@@ -24,12 +24,12 @@ module.exports = {
                 T2N.printEmptyReport();
             } else {
                 const entryDate = timeularEntries[0].getDate();
-                const projGroup = await T2N.groupTimeularEntriesByProject(timeularEntries);
+                const projGroup = T2N.groupTimeularEntriesByProject(timeularEntries);
 
                 // @todo: Sort by project id to keep reports consistently formatted.
 
                 // Print the day's summary.
-                T2N.printDaySummary(entryDate, projGroup);
+                await T2N.printDaySummary(entryDate, projGroup);
             }
         }
     },
@@ -52,12 +52,12 @@ module.exports = {
                 T2N.printEmptyReport();
             } else {
                 const entryDate = timeularEntries[0].getDate();
-                const projGroup = await T2N.groupTimeularEntriesByProject(timeularEntries);
+                const projGroup = T2N.groupTimeularEntriesByProject(timeularEntries);
 
                 // @todo: Sort by project id to keep reports consistently formatted.
 
                 // Print the day's summary.
-                T2N.printDaySummary(entryDate, projGroup);
+                await T2N.printDaySummary(entryDate, projGroup);
             }
         },
     },
@@ -66,21 +66,35 @@ module.exports = {
      */
     thisWeek: {
         label: "This Week's Hours",
-        process: (config, token) => {
-            return new Promise((resolve, reject) => {
-                let date1 = new Date();
-                date1.setWeekStart();
+        load: async (T2N) => {
+            let date1 = new Date();
+            date1.setWeekStart();
 
-                let date2 = new Date();
-                date2.setWeekEnd();
+            let date2 = new Date();
+            date2.setWeekEnd();
 
-                timeularUtils.getTimeEntries(token, date1, date2).then(entries => {
-                    utils.printByDate(entries, config);
-                    resolve(true);
-                });
-            }).catch(err => {
-                console.error(err.message);
-            });
+            return await T2N.timeularApi.getTimeEntries(date1, date2);
+        },
+        print: async (T2N, timeularEntries) => {
+            if (timeularEntries.length === 0) {
+                T2N.printEmptyReport();
+            } else {
+                const dateGroup = T2N.groupTimeularEntriesByDate(timeularEntries);
+
+                // Print each day.
+                for (let i in dateGroup) {
+                    let group = dateGroup[i];
+                    let projGroup = T2N.groupTimeularEntriesByProject(group);
+
+                    // @todo: Sort by project id to keep reports consistently formatted.
+
+                    // Print the day's summary.
+                    let entryDate = group[0].getDate();
+                    await T2N.printDaySummary(entryDate, projGroup);
+                }
+
+                // @todo: Print the report summary.
+            }
         }
     },
     /**
@@ -88,21 +102,35 @@ module.exports = {
      */
     lastWeek: {
         label: "Last Week's Hours",
-        process: (config, token) => {
-            return new Promise((resolve, reject) => {
-                let date1 = new Date();
-                date1.setWeekStart(-1);
+        load: async (T2N) => {
+            let date1 = new Date();
+            date1.setWeekStart(-1);
 
-                let date2 = new Date();
-                date2.setWeekEnd(-1);
+            let date2 = new Date();
+            date2.setWeekEnd(-1);
 
-                timeularUtils.getTimeEntries(token, date1, date2).then(entries => {
-                    utils.printByDate(entries, config);
-                    resolve(true);
-                });
-            }).catch(err => {
-                console.error(err.message);
-            });
+            return await T2N.timeularApi.getTimeEntries(date1, date2);
+        },
+        print: async (T2N, timeularEntries) => {
+            if (timeularEntries.length === 0) {
+                T2N.printEmptyReport();
+            } else {
+                const dateGroup = T2N.groupTimeularEntriesByDate(timeularEntries);
+
+                // Print each day's report.
+                for (let i in dateGroup) {
+                    let group = dateGroup[i];
+                    let projGroup = T2N.groupTimeularEntriesByProject(group);
+
+                    // @todo: Sort by project id to keep reports consistently formatted.
+
+                    // Print the day's summary.
+                    let entryDate = group[0].getDate();
+                    await T2N.printDaySummary(entryDate, projGroup);
+                }
+
+                // @todo: Print the report summary.
+            }
         }
     },
     /**
@@ -110,29 +138,37 @@ module.exports = {
      */
     customDate: {
         label: "Specific Day",
-        process: (timeularApi, config) => {
-            // Get the custom date.
-            const dateQuestion = {name: 'reportDate', message: "Get Report for Date [yyyy-mm-dd]:"};
+        load: async (T2N, dateString) => {
+            // Validate the date string.
+            const regex = /\d{4}-\d{1,2}-\d{1,2}/gm;
+            if (!dateString.match(regex)) {
+                throw new Error('Invalid date string for custom report.');
+            }
 
-            // @todo: Validate reportDate as a valid date string.
-            inquirer.prompt([dateQuestion]).then(answer => {
-                timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
-                    let date1 = new Date(answer.reportDate);
-                    date1.setMinutes(date1.getMinutes() + date1.getTimezoneOffset());
-                    date1.setDayStart();
+            let date1 = new Date(dateString);
+            date1.setMinutes(date1.getMinutes() + date1.getTimezoneOffset());
+            date1.setDayStart();
 
-                    let date2 = new Date(answer.reportDate);
-                    date2.setMinutes(date2.getMinutes() + date2.getTimezoneOffset());
-                    date2.setDayEnd();
+            let date2 = new Date(dateString);
+            date2.setMinutes(date2.getMinutes() + date2.getTimezoneOffset());
+            date2.setDayEnd();
 
-                    timeularApi.getTimeEntries(token, date1, date2).then(response => {
-                        utils.printByDate(response.timeEntries, config);
-                    });
-                }).catch(err => {
-                    console.error(err.message);
-                });
-            });
-        }
+            return await T2N.timeularApi.getTimeEntries(date1, date2);
+        },
+        print: async (T2N, timeularEntries) => {
+            if (timeularEntries.length === 0) {
+                T2N.printEmptyReport();
+            } else {
+                const entryDate = timeularEntries[0].getDate();
+                const projGroup = T2N.groupTimeularEntriesByProject(timeularEntries);
+
+                // @todo: Sort by project id to keep reports consistently formatted.
+
+                // Print the day's summary.
+                await T2N.printDaySummary(entryDate, projGroup);
+            }
+        },
+        reportDate: null
     },
     /**
      * List all your defined Timeular activities.

@@ -58,7 +58,3 @@ Math.ceilX = function(x, y) {
 Array.prototype.timeSort = function() {
     this.sort((a, b) => a.date.getTime() - b.date.getTime());
 }
-
-Array.prototype.TimeularEntryTimeSort = function() {
-    this.sort((a, b) => a.getDate().getTime() - b.getDate().getTime());
-}

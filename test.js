@@ -1,6 +1,7 @@
 require('./src/prototype');
 const program = require('commander');
 const Timeular2Noko = require('./src/Timeular2Noko');
+const Report = require('./src/report');
 const config = require('./config');
 const reports = require('./src/reports');
 
@@ -18,10 +19,18 @@ config.roundEntry = options.roundUp || 5;
 const T2N = new Timeular2Noko(config);
 
 // Instantiate the APIs.
-T2N.init().then(response => {
+T2N.init(options).then(response => {
     T2N.getReport(options, reports)
+
         // Validate the chosen report.
-        .then(reportName => {
+        .then(answers => {
+            const reportName = answers.reportName;
+
+            // Append the date from the prompt to the report that requested it.
+            if (answers.reportDate !== null) {
+                reports[reportName].reportDate = answers.reportDate;
+            }
+
             // Make sure we have a valid report name.
             if (!reports.hasOwnProperty(reportName)) {
                 throw new Error(`${reportName} is not a valid report name.`);
@@ -34,20 +43,31 @@ T2N.init().then(response => {
 
             return reports[reportName];
         })
-        // Print the report to the console.
-        .then(report => {
-            report.load(T2N).then(entries => {
-                report.print(T2N, entries);
-                return entries;
-            }, err => {
-                throw err;
-            });
-        })
-        // Ask to log entries to Noko.
-        .then(entries => {
 
-        }, err => {
-            throw err;
+        // Load the report entries.
+        .then(async report => {
+            const entries = report.hasOwnProperty('reportDate') ? await report.load(T2N, report.reportDate) : await report.load(T2N);
+            return [report, entries];
+        })
+
+        // Print the report.
+        .then(async response => {
+            await response[0].print(T2N, response[1]);
+            return response;
+        })
+
+        // Send to Noko.
+        .then(response => {
+
+        })
+
+        // Round up any errors.
+        .catch(err => {
+            console.error('❌️ ' + err.message);
+
+            if (options.debug) {
+                console.error(err);
+            }
         });
 }).catch(err => {
     console.error('❌️ ' + err.message);
