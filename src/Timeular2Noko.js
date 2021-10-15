@@ -59,6 +59,25 @@ class Timeular2Noko {
         });
     }
 
+
+    async loadTimeularEntries(startDate, endDate) {
+        /**
+         * Entries will have Timeular activities attached, but we want to add Noko data from the config as well.
+         * @type {*}
+         */
+        const entries = await this.timeularApi.getTimeEntries(startDate, endDate);
+
+        // We can only pull one project at a time from Noko.  There is no API call to pull multiple.
+        return entries.map(async (entry) => {
+            let projectId = this.getRelatedNokoProjectId(entry);
+            let project = await this.nokoApi.getProject(projectId);
+
+            // @todo: What happens if the projectId is not valid?
+
+            return entry.nokoProject = project;
+        });
+    }
+
     /**
      * Get an array of tags and notes from each entry.
      *
@@ -80,52 +99,38 @@ class Timeular2Noko {
             tasks = tasks.concat(notes);
         });
 
+        // Entry clean up.
+        // Remove empty values
+        // Remove duplicate values
+        // @todo: Trim extra spaces and commas
+        // @todo: Handle newline characters
+
         // Remove duplicate and empty notes and tags.
-        return tasks.filter((val, index) => {
-            return (typeof val !== "undefined") &&
-                (val.trim() !== "") &&
-                (tasks.indexOf(val) === index);
-        });
+        return this.filterNotes(tasks);
     }
 
     /**
-     * Print a report of the time entries for the dates selected to the console.
-     *
-     * @param date
-     * @param {array} groupedByProject
+     * Given an array of notes from Timeular entries, filter out bad entries and duplicates.
+     * @param {array} notes
+     * @returns {array}
      */
-    async printDaySummary(date, groupedByProject) {
-        let billableHours = 0;
-        let nonBillableHours = 0;
+    filterNotes(notes) {
+        notes = notes.map((val, index) => {
+            // Trim any white space and commas from either end of the string.
+            val = val.replace(/^[\s,]+|[\s,]+$/gm, '');
 
-        // Print the date.
-        console.log(`\n${date.getDayFull()}`.bold.red);
-
-        // Run through each project and print summarized data.
-        for (let projId in groupedByProject) {
-            // Get the project from the Id.
-            const project = await this.nokoApi.getProject(projId);
-
-            // Get the total duration of time worked on this project for this day.
-            const projHours = this.sumTimeularEntries(groupedByProject[projId]);
-
-            // Get a filtered array of tasks and tags for the entries in this project.
-            const projTasks = this.getTasksFromTimeularEntries(groupedByProject[projId]);
-
-            // Print the project summary.
-            console.log(`    ${projHours} hours \t ${project.getName().blue} | ${projTasks.join(", ")}`);
-
-            // Log billable and non-billable time.
-            if (project.isBillable()) {
-                billableHours += projHours;
-            } else {
-                nonBillableHours += projHours;
+            // Replaces spaces with a hyphen in tags.
+            if (val.indexOf('#') === 0) {
+                val = val.replace(/ +/g, '-');
             }
-        }
 
-        console.log(`\n    Billable:\t\t${billableHours} hours`);
-        console.log(`    Not Billable:\t${nonBillableHours} hours`);
-        console.log(`    Total:\t\t${billableHours + nonBillableHours} hours`.bold);
+            return val;
+        });
+
+        // Remove empty and duplicate values.
+        return notes.filter((val, index) => {
+            return (val.length > 0 && notes.indexOf(val) === index);
+        });
     }
 
     /**
@@ -153,19 +158,28 @@ class Timeular2Noko {
         const grouped = {};
 
         timeularEntries.forEach(entry => {
-            const activity = entry.getActivity();
-            let nokoProjectId = 0;
-
-            if (this.config.activityProjectMap.hasOwnProperty(activity.getId())) {
-                nokoProjectId = this.config.activityProjectMap[activity.getId()];
-            }
-
+            let nokoProjectId = this.getRelatedNokoProjectId(entry);
             grouped[nokoProjectId] = grouped[nokoProjectId] || [];
             grouped[nokoProjectId].push(entry);
         });
 
 
         return grouped;
+    }
+
+    /**
+     * Get the Noko Project Id from a Timeular Entry via its activity.
+     * @param entry
+     * @returns {number}
+     */
+    getRelatedNokoProjectId(entry) {
+        const activity = entry.getActivity();
+        let nokoProjectId = 0;
+
+        if (this.config.activityProjectMap.hasOwnProperty(activity.getId())) {
+            nokoProjectId = this.config.activityProjectMap[activity.getId()];
+        }
+        return nokoProjectId;
     }
 
     /**
@@ -181,11 +195,6 @@ class Timeular2Noko {
             let reportNames = [];
             for (let i in reports) {
                 reportNames.push({name: reports[i].label, value: i});
-            }
-
-            // If a report was specified in the command, adjust the
-            if (options?.report.length > 0) {
-
             }
 
             const reportName = {
@@ -224,6 +233,81 @@ class Timeular2Noko {
      */
     printEmptyReport() {
         console.log("There are no time entries in this report.".blue);
+    }
+
+    /**
+     * Print a report of the time entries for the dates selected to the console.
+     *
+     * @param date
+     * @param {} groupedByProject
+     */
+    async printDaySummary(date, groupedByProject) {
+        let billableHours = 0;
+        let nonBillableHours = 0;
+
+        // Print the date.
+        console.log(`\n${date.getDayFull()}`.bold.red);
+
+        // Run through each project and print summarized data.
+        for (let projId in groupedByProject) {
+            // Get the project from the Id.
+            const project = await this.nokoApi.getProject(projId);
+
+            // Get the total duration of time worked on this project for this day.
+            const projHours = this.sumTimeularEntries(groupedByProject[projId]);
+
+            // Get a filtered array of tasks and tags for the entries in this project.
+            const projTasks = this.getTasksFromTimeularEntries(groupedByProject[projId]);
+
+            // Print the project summary.
+            console.log(`    ${projHours} hours \t ${project.getName().blue} | ${projTasks.join(", ")}`);
+
+            // Log billable and non-billable time.
+            if (project.isBillable()) {
+                billableHours += projHours;
+            } else {
+                nonBillableHours += projHours;
+            }
+        }
+
+        console.log(`\n    Billable:\t\t${billableHours} hours`);
+        console.log(`    Not Billable:\t${nonBillableHours} hours`);
+        console.log(`    Total:\t\t${billableHours + nonBillableHours} hours`.bold);
+    }
+
+    /**
+     * Print a multi-day time summary to the console.
+     *
+     * @param timeularEntries
+     * @returns {Promise<void>}
+     */
+    async printMultiDaySummary(timeularEntries) {
+        const dateGroup = this.groupTimeularEntriesByDate(timeularEntries);
+        let billableSummary = {
+            billable: 0,
+            nonBillable: 0
+        };
+
+        // Print each day.
+        for (let i in dateGroup) {
+            let group = dateGroup[i];
+            let projGroup = this.groupTimeularEntriesByProject(group);
+
+            // Gather the billable summary data for the group.
+            billableSummary = this.getBillableSummary(projGroup);
+
+            // @todo: Sort by project id to keep reports consistently formatted.
+
+            // Print the day's summary.
+            let entryDate = group[0].getDate();
+            await this.printDaySummary(entryDate, projGroup);
+        }
+
+        // @todo: Print the report summary.
+    }
+
+    billableSummary(projGroup) {
+
     }
 
     /**

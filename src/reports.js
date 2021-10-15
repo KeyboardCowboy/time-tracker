@@ -1,9 +1,6 @@
 /**
  * Define the various reports that can be run.
  */
-const inquirer = require('inquirer');
-const utils = require('./utils');
-
 module.exports = {
     /**
      * Define the report to print today's hours.
@@ -79,21 +76,7 @@ module.exports = {
             if (timeularEntries.length === 0) {
                 T2N.printEmptyReport();
             } else {
-                const dateGroup = T2N.groupTimeularEntriesByDate(timeularEntries);
-
-                // Print each day.
-                for (let i in dateGroup) {
-                    let group = dateGroup[i];
-                    let projGroup = T2N.groupTimeularEntriesByProject(group);
-
-                    // @todo: Sort by project id to keep reports consistently formatted.
-
-                    // Print the day's summary.
-                    let entryDate = group[0].getDate();
-                    await T2N.printDaySummary(entryDate, projGroup);
-                }
-
-                // @todo: Print the report summary.
+                await T2N.printMultiDaySummary(timeularEntries);
             }
         }
     },
@@ -115,21 +98,7 @@ module.exports = {
             if (timeularEntries.length === 0) {
                 T2N.printEmptyReport();
             } else {
-                const dateGroup = T2N.groupTimeularEntriesByDate(timeularEntries);
-
-                // Print each day's report.
-                for (let i in dateGroup) {
-                    let group = dateGroup[i];
-                    let projGroup = T2N.groupTimeularEntriesByProject(group);
-
-                    // @todo: Sort by project id to keep reports consistently formatted.
-
-                    // Print the day's summary.
-                    let entryDate = group[0].getDate();
-                    await T2N.printDaySummary(entryDate, projGroup);
-                }
-
-                // @todo: Print the report summary.
+                await T2N.printMultiDaySummary(timeularEntries);
             }
         }
     },
