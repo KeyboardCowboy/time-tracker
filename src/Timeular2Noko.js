@@ -6,6 +6,7 @@ const inquirer = require("inquirer");
 const TimeularApi = require('../lib/TimeularApi');
 const NokoApi = require('../lib/NokoApi');
 const TimeularEntry = require("../lib/src/TimeularEntry");
+const NokoTimeEntry = require('../lib/src/NokoTimeEntry');
 const colors = require('colors');
 
 class Timeular2Noko {
@@ -296,6 +297,19 @@ class Timeular2Noko {
     }
 
     /**
+     * Print a summary of a Noko Time Entry.
+     * @param response
+     */
+    printNokoEntrySummary(response) {
+        const hours = `${response.minutes / 60}`;
+        const projName = response.project.name;
+        const day = response.date;
+        const userName = `${response.user.first_name} ${response.user.last_name}`;
+
+        console.log(`${day.bold}: Logged ${hours.bold} hours to ${projName.blue.bold} for ${userName.bold}`);
+    }
+
+    /**
      * Generate a summary of billable vs non-billable data for a project.
      * @param {object} projGroup
      * @returns {{total: number, nonBillable: number, billable: number}}
@@ -347,6 +361,37 @@ class Timeular2Noko {
      */
     minsToProjHours(minutes) {
         return Math.ceilX(minutes, this.config.roundProject) / 60;
+    }
+
+    /**
+     * Write time entries to Noko grouped by project.
+     * @param entries
+     * @returns {Promise<void>}
+     */
+    async submitEntriesToNoko(entries) {
+        const dateGroup = this.groupTimeularEntriesByDate(entries);
+
+        for (let i in dateGroup) {
+            let projectGroup = await this.groupTimeularEntriesByProject(dateGroup[i]);
+
+            // Add some spacing to the report.
+            console.log('');
+
+            for (let projId in projectGroup) {
+                let group = projectGroup[projId];
+                let date = group.entries[0].getDate();
+                let minutes = this.sumTimeularEntries(group.entries) * 60;
+                let description = this.getTasksFromTimeularEntries(group.entries).join(',');
+                let timeEntry = new NokoTimeEntry(date, minutes, projId, description);
+
+                // Create the entry and log the results.
+                await this.nokoApi.createEntry(timeEntry).then(response => {
+                    this.printNokoEntrySummary(response);
+                }).catch(err => {
+                    console.error(err);
+                });
+            }
+        }
     }
 }
 

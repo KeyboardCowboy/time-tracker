@@ -1,7 +1,7 @@
 require('./src/prototype');
 const program = require('commander');
+const inquirer = require('inquirer');
 const Timeular2Noko = require('./src/Timeular2Noko');
-const Report = require('./src/report');
 const config = require('./config');
 const reports = require('./src/reports');
 
@@ -53,12 +53,31 @@ T2N.init(options).then(response => {
         // Print the report.
         .then(async response => {
             await response[0].print(T2N, response[1]);
-            return response;
+            return response[1];
         })
 
         // Send to Noko.
-        .then(response => {
+        .then(entries => {
+            // If there are no entries to send to Noko, don't ask.
+            if (entries.length === 0) {
+                process.exit(0);
+            }
 
+            // Confirm sending Noko entries.
+            console.log('');
+            inquirer.prompt([{
+                'type': 'confirm',
+                'name': 'sendToNoko',
+                'message': "Submit the report to Noko?"
+            }]).then(answers => {
+                if (answers.sendToNoko) {
+                    T2N.submitEntriesToNoko(entries);
+                } else {
+                    console.log("Bye!");
+                }
+            }).catch(err => {
+                throw err;
+            });
         })
 
         // Round up any errors.
