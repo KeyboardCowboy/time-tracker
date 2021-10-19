@@ -21,7 +21,7 @@ module.exports = {
                 T2N.printEmptyReport();
             } else {
                 const entryDate = timeularEntries[0].getDate();
-                const projGroup = T2N.groupTimeularEntriesByProject(timeularEntries);
+                const projGroup = await T2N.groupTimeularEntriesByProject(timeularEntries);
 
                 // @todo: Sort by project id to keep reports consistently formatted.
 
@@ -49,7 +49,7 @@ module.exports = {
                 T2N.printEmptyReport();
             } else {
                 const entryDate = timeularEntries[0].getDate();
-                const projGroup = T2N.groupTimeularEntriesByProject(timeularEntries);
+                const projGroup = await T2N.groupTimeularEntriesByProject(timeularEntries);
 
                 // @todo: Sort by project id to keep reports consistently formatted.
 
@@ -129,7 +129,7 @@ module.exports = {
                 T2N.printEmptyReport();
             } else {
                 const entryDate = timeularEntries[0].getDate();
-                const projGroup = T2N.groupTimeularEntriesByProject(timeularEntries);
+                const projGroup = await T2N.groupTimeularEntriesByProject(timeularEntries);
 
                 // @todo: Sort by project id to keep reports consistently formatted.
 
