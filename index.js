@@ -1,39 +1,97 @@
 require('./src/prototype');
 const program = require('commander');
+const inquirer = require('inquirer');
+const Timeular2Noko = require('./src/Timeular2Noko');
 const config = require('./config');
-const utils = require('./src/utils');
-const timeularApi = require('./lib/timeular');
 const reports = require('./src/reports');
 
 // Grab any user provided variables.
 program
     .option("-r, --report <string>", 'The report to run.')
     .option("-m, --roundUp <minutes>", "Round each time entry up by this increment.  Defaults to 5 minutes.")
+    .option("-d, --debug", "Show more details if the program errors out.")
     .parse(process.argv);
 const options = program.opts();
 
 // Default time entry rounding up to 5 minute increments.
 config.roundEntry = options.roundUp || 5;
 
-utils.getReport(options, reports).then(reportName => {
-    // Make sure we have a valid report name.
-    if (!reports.hasOwnProperty(reportName)) {
-        throw new Error('Invalid report selected.');
-    }
+const T2N = new Timeular2Noko(config);
 
-    // Make sure the report has defined a processor.
-    if (!reports[reportName].hasOwnProperty('process')) {
-        throw new Error(`No processor was defined for the ${reports[reportName].label} report.`);
-    }
+// Instantiate the APIs.
+T2N.init(options).then(response => {
+    T2N.getReport(options, reports)
 
-    timeularApi.connect(config.timeularKey, config.timeularSecret).then(token => {
-        // Run the report.
-        reports[reportName].process(config, token).then(entries => {
-            console.log("\n@todo: Ask to report the entries to Noko.");
+        // Validate the chosen report.
+        .then(answers => {
+            const reportName = answers.reportName;
+
+            // Append the date from the prompt to the report that requested it.
+            if (answers.reportDate !== null) {
+                reports[reportName].reportDate = answers.reportDate;
+            }
+
+            // Make sure we have a valid report name.
+            if (!reports.hasOwnProperty(reportName)) {
+                throw new Error(`${reportName} is not a valid report name.`);
+            }
+
+            // Make sure the report has defined a processor.
+            if (!reports[reportName].hasOwnProperty('load')) {
+                throw new Error(`No loading function was defined for the ${reports[reportName].label} report.`);
+            }
+
+            return reports[reportName];
+        })
+
+        // Load the report entries.
+        .then(async report => {
+            const entries = report.hasOwnProperty('reportDate') ? await report.load(T2N, report.reportDate) : await report.load(T2N);
+            return [report, entries];
+        })
+
+        // Print the report.
+        .then(async response => {
+            await response[0].print(T2N, response[1]);
+            return response[1];
+        })
+
+        // Send to Noko.
+        .then(entries => {
+            // If there are no entries to send to Noko, don't ask.
+            if (entries.length === 0) {
+                process.exit(0);
+            }
+
+            // Confirm sending Noko entries.
+            console.log('');
+            inquirer.prompt([{
+                'type': 'confirm',
+                'name': 'sendToNoko',
+                'message': "Submit the report to Noko?"
+            }]).then(answers => {
+                if (answers.sendToNoko) {
+                    T2N.submitEntriesToNoko(entries);
+                } else {
+                    console.log("Bye!");
+                }
+            }).catch(err => {
+                throw err;
+            });
+        })
+
+        // Round up any errors.
+        .catch(err => {
+            console.error('❌️ ' + err.message);
+
+            if (options.debug) {
+                console.error(err);
+            }
         });
-    }).catch(err => {
-        console.error('❌️ ' + err.message);
-    });
 }).catch(err => {
     console.error('❌️ ' + err.message);
+
+    if (options.debug) {
+        console.error(err);
+    }
 });
