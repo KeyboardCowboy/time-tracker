@@ -1,12 +1,9 @@
 module.exports = {
-    "apiKey": "apiKey",
-    "apiSecret": "apiSecret",
-    "activityMap": {
-        'timularActivityId1': {
-            label: 'Custom Reporting Label',
-            nokoProject: 'nokoProjectId1',
-            billable: true
-        },
-        // ...
-    }
+    'timeularKey': '',
+    'timeularSecret': '',
+    'nokoToken': '',
+    // Round project summary time to the nearest minute increment.
+    'roundProject': 15,
+    // Map Timeular Activity IDs to Noko Project IDs.
+    'activityProjectMap': {}
 };
