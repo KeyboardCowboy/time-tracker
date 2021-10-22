@@ -53,13 +53,13 @@ T2N.init(options).then(response => {
         // Print the report.
         .then(async response => {
             await response[0].print(T2N, response[1]);
-            return response[1];
+            return response;
         })
 
         // Send to Noko.
-        .then(entries => {
+        .then(response => {
             // If there are no entries to send to Noko, don't ask.
-            if (entries.length === 0) {
+            if (response[0]?.sendToNoko === false || response[1].length === 0) {
                 process.exit(0);
             }
 
