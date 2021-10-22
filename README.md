@@ -15,7 +15,7 @@ If you log your time using Timeular, you can map the Timeular activities to Noko
 ## Getting Started
 1. To begin, you will need to have at least one Timeular activity defined and optionally mapped to your otcohedron.  You will also need to have at least one Noko project defined.
 2. Install this package.
-    ```node.js
+    ```shell
     $ git clone git@github.com:KeyboardCowboy/time-tracker.git timeular2noko
     $ cd timeular2noko
     $ npm install
