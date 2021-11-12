@@ -151,6 +151,7 @@ module.exports = {
             activities.forEach(activity => {
                 console.log(activity.getId() + ': ' + activity.getName());
             });
-        }
+        },
+        sendToNoko: false
     },
 };
