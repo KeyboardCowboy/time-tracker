@@ -381,7 +381,7 @@ class Timeular2Noko {
                 let group = projectGroup[projId];
                 let date = group.entries[0].getDate();
                 let minutes = this.sumTimeularEntries(group.entries) * 60;
-                let description = this.getTasksFromTimeularEntries(group.entries).join(',');
+                let description = this.getTasksFromTimeularEntries(group.entries).join(', ');
                 let timeEntry = new NokoTimeEntry(date, minutes, projId, description);
 
                 // Create the entry and log the results.
