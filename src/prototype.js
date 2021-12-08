@@ -38,7 +38,7 @@ Date.prototype.setWeekEnd = function(offset) {
 };
 
 Date.prototype.getMonthAbbrev = function() {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dev"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return months[this.getMonth()];
 }
 
