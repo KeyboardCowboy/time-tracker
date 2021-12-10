@@ -71,7 +71,7 @@ T2N.init(options).then(response => {
                 'message': "Submit the report to Noko?"
             }]).then(answers => {
                 if (answers.sendToNoko) {
-                    T2N.submitEntriesToNoko(entries);
+                    T2N.submitEntriesToNoko(response[1]);
                 } else {
                     console.log("Bye!");
                 }
