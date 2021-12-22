@@ -378,18 +378,25 @@ class Timeular2Noko {
             console.log('');
 
             for (let projId in projectGroup) {
+                let project = projectGroup[projId].project;
                 let group = projectGroup[projId];
                 let date = group.entries[0].getDate();
-                let minutes = this.sumTimeularEntries(group.entries) * 60;
-                let description = this.getTasksFromTimeularEntries(group.entries).join(', ');
-                let timeEntry = new NokoTimeEntry(date, minutes, projId, description);
+                let hours = this.sumTimeularEntries(group.entries);
+                let minutes = hours * 60;
 
-                // Create the entry and log the results.
-                await this.nokoApi.createEntry(timeEntry).then(response => {
-                    this.printNokoEntrySummary(response);
-                }).catch(err => {
-                    console.error(err);
-                });
+                if (project.isValid()) {
+                    let description = this.getTasksFromTimeularEntries(group.entries).join(', ');
+                    let timeEntry = new NokoTimeEntry(date, minutes, projId, description);
+
+                    // Create the entry and log the results.
+                    await this.nokoApi.createEntry(timeEntry).then(response => {
+                        this.printNokoEntrySummary(response);
+                    }).catch(err => {
+                        console.error(err);
+                    });
+                } else {
+                    console.log(`Skipped ${hours} hour(s) for unmapped time entries.`);
+                }
             }
         }
     }
