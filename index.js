@@ -56,10 +56,13 @@ T2N.init(options).then(response => {
             return response;
         })
 
-        // Send to Noko.
-        .then(response => {
+        // Remove any entries that are not related to a valid Noko project.
+        .then(async response => {
+            const report = response[0];
+            const entries = response[1];
+
             // If there are no entries to send to Noko, don't ask.
-            if (response[0]?.sendToNoko === false || response[1].length === 0) {
+            if (report?.sendToNoko === false || entries.length === 0) {
                 process.exit(0);
             }
 
