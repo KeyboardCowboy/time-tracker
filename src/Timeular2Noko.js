@@ -8,6 +8,7 @@ const NokoApi = require('../lib/NokoApi');
 const TimeularEntry = require("../lib/src/TimeularEntry");
 const NokoTimeEntry = require('../lib/src/NokoTimeEntry');
 const colors = require('colors');
+const config = require("../config");
 
 class Timeular2Noko {
     /**
@@ -47,11 +48,12 @@ class Timeular2Noko {
         this.nokoApi = new NokoApi(this.config.nokoToken);
         this.nokoApi.debug(options.debug);
 
-        return new Promise((resolve, reject) => {
-            // Instantiate a Timeular API object.
-            this.timeularApi = new TimeularApi();
-            this.timeularApi.debug(options.debug);
+        // Instantiate a Timeular API object.
+        this.timeularApi = new TimeularApi();
+        this.timeularApi.debug(options.debug);
 
+        // Establish the Timeular access token.
+        return new Promise((resolve, reject) => {
             this.timeularApi.connect(this.config.timeularKey, this.config.timeularSecret).then(response => {
                 resolve(response);
             }).catch(err => {
@@ -224,6 +226,9 @@ class Timeular2Noko {
      * @param {} groupedByProject
      */
     async printDaySummary(date, groupedByProject) {
+        let deactivatedProjectCount = 0;
+        let deactivatedNotice = '';
+
         // Print the date.
         console.log(`\n${date.getDayFull()}`.bold.red);
 
@@ -240,13 +245,27 @@ class Timeular2Noko {
             // Get a filtered array of tasks and tags for the entries in this project.
             const projTasks = this.getTasksFromTimeularEntries(group.entries);
 
+            // Mark deactivated Noko projects.
+            if (project.isValid() && !project.isActive()) {
+                deactivatedProjectCount++;
+                deactivatedNotice = ' (inactive)';
+            } else {
+                deactivatedNotice = '';
+            }
+
             // Print the project summary.
-            console.log(`    ${projHours} hours \t ${project.getName().blue} | ${projTasks.join(", ")}`);
+            console.log(`    ${projHours} hours \t ${project.getName().blue}${deactivatedNotice.italic.yellow} | ${projTasks.join(", ")}`);
         }
 
         // Get the billable summary time.
-        console.log(""); // Empty line between project total and summary.
+        console.log(''); // Empty line between project total and summary.
         this.printBillableSummary(this.getBillableSummary(groupedByProject));
+
+        // Add a notice if the report contains deactivated Noko projects.
+        if (deactivatedProjectCount > 0) {
+            console.log('');
+            console.log(`    There are ${deactivatedProjectCount.toString().bold} archived Noko projects mapped to Timeular activities today.  Time will not be logged to these projects.`.italic.yellow);
+        }
     }
 
     /**
@@ -384,7 +403,7 @@ class Timeular2Noko {
                 let hours = this.sumTimeularEntries(group.entries);
                 let minutes = hours * 60;
 
-                if (project.isValid()) {
+                if (project.isValid() && project.isActive()) {
                     let description = this.getTasksFromTimeularEntries(group.entries).join(', ');
                     let timeEntry = new NokoTimeEntry(date, minutes, projId, description);
 
@@ -395,10 +414,18 @@ class Timeular2Noko {
                         console.error(err);
                     });
                 } else {
-                    console.log(`Skipped ${hours} hour(s) for unmapped time entries.`);
+                    console.log(`Skipped ${hours} hour(s) for missing/archived Noko projects.`);
                 }
             }
         }
+    }
+
+    /**
+     * Get an array of unique Noko project IDs mapped to Timeular activities.
+     * @returns {[]}
+     */
+    getAllProjectIds() {
+        return [...new Set(Object.values(this.config.activityProjectMap))];
     }
 }
 

@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 const Timeular2Noko = require('../src/Timeular2Noko');
-const config = require('../config');
+const config = require('./sample-config');
 
 const T2N = new Timeular2Noko(config);
 
@@ -38,5 +38,12 @@ describe('T2N Note Filter', () => {
     it('should replace spaces with hyphens in tags', () => {
         assert.deepStrictEqual(T2N.filterNotes(['#this is a tag']), ['#this-is-a-tag'], 'Tags should not contain spaces.');
         assert.deepStrictEqual(T2N.filterNotes(['#this    is   a    tag']), ['#this-is-a-tag'], 'Multiple spaces should be single hyphens.');
+    });
+});
+
+describe('Project ID Validator', () => {
+    it('should return only unique project ids', () => {
+        const projIds = T2N.getAllProjectIds();
+        assert.strictEqual(projIds.length, 4);
     });
 });
