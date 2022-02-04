@@ -51,7 +51,10 @@ Date.prototype.getMonthAbbrev = function() {
 
 Date.prototype.getDowFull = function () {
     const dows = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-    return dows[this.getDay() - 1];
+    let dow = this.getDay() - 1;
+    dow = dow >= 0 ? dow : 6;
+
+    return dows[dow];
 }
 
 Date.prototype.getDayFull = function () {
