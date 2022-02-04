@@ -19,22 +19,29 @@ Date.prototype.setDayEnd = function(offset) {
     this.setHours(23 + tmzh, 59, 59, 999);
 };
 
+/**
+ * Set the date to the 0 hour of the previous Sunday.
+ * @param offset
+ *     Set ahead or back this many weeks. (-1 for last week.)
+ */
 Date.prototype.setWeekStart = function(offset) {
     offset = offset || 0;
 
+    let TO = this.getTimezoneOffset() / 60;
     let weekOffset = 7 * offset;
     let dow = this.getDay();
     this.setDate((this.getDate() + weekOffset) - dow);
-    this.setHours(0, 0, 0, 0);
+    this.setHours(TO, 0, 0, 0);
 };
 
 Date.prototype.setWeekEnd = function(offset) {
     offset = offset || 0;
 
+    let TO = this.getTimezoneOffset() / 60;
     let weekOffset = 7 * offset;
     let dow = 6 - this.getDay();
     this.setDate(this.getDate() + dow + weekOffset);
-    this.setHours(23, 59, 59, 999);
+    this.setHours(23 + TO, 59, 59, 999);
 };
 
 Date.prototype.getMonthAbbrev = function() {
