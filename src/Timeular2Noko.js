@@ -79,6 +79,14 @@ class Timeular2Noko {
             if (notes.length === 0) {
                 notes.push(entry.activity.getName());
             }
+            else if (this.config.prefixNotes) {
+                let actName = entry.activity.getName();
+
+                // Prefix non-tag notes with the activity name.
+                notes = notes.map(note => {
+                    return note.startsWith('#') ? note : `${actName}: ${note}`;
+                })
+            }
 
             tasks = tasks.concat(notes);
         });
